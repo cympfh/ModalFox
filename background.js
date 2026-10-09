@@ -4,6 +4,20 @@ function modeOf(tabId) {
   return modeByTab.get(tabId) || "browser";
 }
 
+function tabIdOf(msg, sender) {
+  return (sender.tab && sender.tab.id) || msg.tabId;
+}
+
+async function applyMode(tabId, next) {
+  modeByTab.set(tabId, next);
+  try {
+    await browser.tabs.sendMessage(tabId, { type: "applyMode", mode: next });
+  } catch {
+    // about: pages have no content script. The stored mode applies on the next page.
+  }
+  return { ok: true, mode: next };
+}
+
 function isUrl(text) {
   if (/^[a-z][a-z0-9+.-]*:/i.test(text)) return true;
   return /^[^\s/]+\.[^\s/]+/.test(text);
@@ -46,12 +60,15 @@ async function neighbor(tabId, dir) {
 }
 
 browser.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-  const tabId = sender.tab && sender.tab.id;
+  const tabId = tabIdOf(msg, sender);
   (async () => {
     if (msg.type === "getMode") return { mode: modeOf(tabId) };
     if (msg.type === "setMode") {
-      modeByTab.set(tabId, msg.mode);
-      return { ok: true };
+      if (sender.tab) {
+        modeByTab.set(tabId, msg.mode);
+        return { ok: true, mode: msg.mode };
+      }
+      return applyMode(tabId, msg.mode);
     }
     if (msg.type === "closeTab") {
       await browser.tabs.remove(tabId);

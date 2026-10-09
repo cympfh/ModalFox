@@ -31,12 +31,16 @@ function fail(text) {
   errorTimer = setTimeout(hideBar, 1200);
 }
 
-async function setMode(next) {
+function applyMode(next) {
   mode = next;
   command = null;
   pending = "";
   clearHint();
   hideBar();
+}
+
+async function setMode(next) {
+  applyMode(next);
   await browser.runtime.sendMessage({ type: "setMode", mode: next });
 }
 
@@ -335,6 +339,10 @@ window.addEventListener("keydown", (event) => {
   }
   onVimKey(event);
 }, true);
+
+browser.runtime.onMessage.addListener((msg) => {
+  if (msg.type === "applyMode") applyMode(msg.mode);
+});
 
 browser.runtime.sendMessage({ type: "getMode" }).then((res) => {
   if (res && res.mode === "vim") mode = "vim";

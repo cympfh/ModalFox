@@ -11,6 +11,8 @@ Two modes, per tab.
 
 Hint and the command line are not modes. They are temporary states inside `vim`.
 
+The toolbar button toggles the current tab's mode, or disables the extension. Re-enable it from `about:addons`.
+
 See [SPEC.md](SPEC.md).
 
 ## Usage
