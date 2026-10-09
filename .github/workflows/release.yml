@@ -1,0 +1,38 @@
+name: release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: pack and publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          version="${GITHUB_REF_NAME#v}"
+          export VERSION="$version"
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          path = Path("manifest.json")
+          data = json.loads(path.read_text())
+          data["version"] = os.environ["VERSION"]
+          path.write_text(json.dumps(data, indent=2) + "\n")
+          PY
+          archive="ModalFox-${version}.zip"
+          zip -r "$archive" manifest.json background.js content.js
+          gh release create "$GITHUB_REF_NAME" "$archive" \
+            --title "$GITHUB_REF_NAME" \
+            --generate-notes
