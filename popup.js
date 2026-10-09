@@ -7,7 +7,7 @@ let mode = "browser";
 
 function render() {
   modeEl.textContent = mode;
-  toggle.textContent = mode === "vim" ? "browser にする" : "vim にする";
+  toggle.textContent = mode === "vim" ? ":browser" : ":vim";
 }
 
 const res = await browser.runtime.sendMessage({ type: "getMode", tabId: tab.id });
