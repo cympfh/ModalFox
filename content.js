@@ -262,7 +262,12 @@ function onBrowserKey(event) {
     }
     return;
   }
-  if (event.key === "Enter" || event.key === "Escape") {
+  if (event.key === "Escape") {
+    browserBuf = null;
+    hideBar();
+    return;
+  }
+  if (event.key === "Enter") {
     if (browserBuf === "vim") setMode("vim");
     else {
       browserBuf = null;
