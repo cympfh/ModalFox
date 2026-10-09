@@ -5,6 +5,7 @@ let mode = "browser";
 let command = null;
 let hint = null;
 let pending = "";
+let browserBuf = null;
 let errorTimer = 0;
 let modeTimer = 0;
 
@@ -49,6 +50,7 @@ function applyMode(next) {
   mode = next;
   command = null;
   pending = "";
+  browserBuf = null;
   clearHint();
   hideBar();
   if (changed) flashMode(next);
@@ -184,14 +186,6 @@ async function runCommand() {
   const line = command;
   command = null;
   const { cmd, arg } = splitCommand(line);
-  if (mode === "browser") {
-    if (cmd === "vim" && arg === "") {
-      await setMode("vim");
-      return;
-    }
-    fail("unknown");
-    return;
-  }
   if (cmd === "browser" && arg === "") {
     await setMode("browser");
     return;
@@ -247,6 +241,29 @@ function onCommandKey(event) {
     command += event.key;
     showBar(":" + command);
   }
+}
+
+function onBrowserKey(event) {
+  if (event.key === ":") {
+    browserBuf = "";
+    return;
+  }
+  if (browserBuf === null) return;
+  if (event.key === "Escape") {
+    if (browserBuf === "vim") setMode("vim");
+    browserBuf = null;
+    return;
+  }
+  if (event.key === "Backspace") {
+    browserBuf = browserBuf.slice(0, -1);
+    return;
+  }
+  if (event.key.length !== 1) {
+    browserBuf = null;
+    return;
+  }
+  browserBuf += event.key;
+  if (!"vim".startsWith(browserBuf)) browserBuf = null;
 }
 
 async function copyUrl() {
@@ -337,19 +354,16 @@ function onVimKey(event) {
 window.addEventListener("keydown", (event) => {
   if (event.isComposing || event.key === "Process") return;
   if (event.ctrlKey || event.metaKey || event.altKey) return;
+  if (mode === "browser") {
+    onBrowserKey(event);
+    return;
+  }
   if (command !== null) {
     onCommandKey(event);
     return;
   }
   if (hint) {
     onHintKey(event);
-    return;
-  }
-  if (mode === "browser") {
-    if (event.key === ":") {
-      command = "";
-      showBar(":");
-    }
     return;
   }
   onVimKey(event);

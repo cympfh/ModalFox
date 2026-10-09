@@ -13,15 +13,14 @@ Per tab.
 
 ## browser
 
-- Watch half-width `:` only. Do not `preventDefault`. The page receives it too.
-- Same in an input. The character is inserted and the command line opens.
-- `Esc` drops the command line only. The inserted character stays. Mode stays `browser`.
+- Every key is passed to the page. Do not `preventDefault`.
+- Characters after a half-width `:` are read and also delivered to the page.
+- `:vim` followed by `Esc` enters `vim`. Anything else is ignored. No error.
 - Ignore full-width `：`.
-- The only command is `:vim`. Anything else is an error. Stay in `browser`.
 
 ## Entry
 
-- `:vim` enters `vim`.
+- `:vim` then `Esc` enters `vim`.
 - `:browser` returns to `browser`.
 - No aliases.
 
@@ -52,5 +51,5 @@ Per tab.
 ## Out of scope
 
 - Operator pending, marks, visual mode, per-site ignore.
-- UI other than the command line.
+- UI other than the command line and the brief mode name.
 - `about:` and AMO. Content scripts do not run there.
