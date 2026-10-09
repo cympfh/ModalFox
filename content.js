@@ -6,11 +6,15 @@ let command = null;
 let hint = null;
 let pending = "";
 let errorTimer = 0;
+let modeTimer = 0;
 
 const bar = document.createElement("div");
 bar.id = "modalfox-bar";
 bar.hidden = true;
-document.documentElement.append(bar);
+const badge = document.createElement("div");
+badge.id = "modalfox-mode";
+badge.hidden = true;
+document.documentElement.append(bar, badge);
 
 function showBar(text, isError) {
   clearTimeout(errorTimer);
@@ -25,6 +29,15 @@ function hideBar() {
   bar.classList.remove("modalfox-error");
 }
 
+function flashMode(name) {
+  clearTimeout(modeTimer);
+  badge.hidden = false;
+  badge.textContent = name;
+  modeTimer = setTimeout(() => {
+    badge.hidden = true;
+  }, 2000);
+}
+
 function fail(text) {
   command = null;
   showBar(text, true);
@@ -32,11 +45,13 @@ function fail(text) {
 }
 
 function applyMode(next) {
+  const changed = mode !== next;
   mode = next;
   command = null;
   pending = "";
   clearHint();
   hideBar();
+  if (changed) flashMode(next);
 }
 
 async function setMode(next) {
@@ -80,7 +95,7 @@ function hintLabels(count) {
 
 function collectTargets() {
   const selector = "a[href], button, input:not([type=hidden]), select, textarea, summary, [role=link], [role=button], [onclick]";
-  return [...document.querySelectorAll(selector)].filter((el) => !el.closest("#modalfox-bar") && visible(el));
+  return [...document.querySelectorAll(selector)].filter((el) => !el.closest("#modalfox-bar, #modalfox-mode") && visible(el));
 }
 
 function clearHint() {
@@ -345,5 +360,5 @@ browser.runtime.onMessage.addListener((msg) => {
 });
 
 browser.runtime.sendMessage({ type: "getMode" }).then((res) => {
-  if (res && res.mode === "vim") mode = "vim";
+  if (res && res.mode === "vim") applyMode("vim");
 });
