@@ -12,16 +12,49 @@ let modeTimer = 0;
 const bar = document.createElement("div");
 bar.id = "modalfox-bar";
 bar.hidden = true;
+const cands = document.createElement("div");
+cands.id = "modalfox-cands";
+cands.hidden = true;
 const badge = document.createElement("div");
 badge.id = "modalfox-mode";
 badge.hidden = true;
-document.documentElement.append(bar, badge);
+document.documentElement.append(bar, cands, badge);
+
+function commandNames() {
+  return mode === "browser" ? ["vim"] : ["browser", "open", "tabopen", "back", "forward"];
+}
+
+function commandMatches(prefix) {
+  return commandNames().filter((name) => name.startsWith(prefix));
+}
+
+function resolveCommand(line) {
+  const { cmd, arg } = splitCommand(line);
+  const found = commandMatches(cmd);
+  if (found.length !== 1) return null;
+  return { cmd: found[0], arg };
+}
+
+function showCands(prefix) {
+  const found = commandMatches(prefix);
+  if (!found.length || (found.length === 1 && found[0] === prefix)) {
+    cands.hidden = true;
+    return;
+  }
+  cands.hidden = false;
+  cands.textContent = found.join("  ");
+}
+
+function hideCands() {
+  cands.hidden = true;
+}
 
 function showBar(text, isError) {
   clearTimeout(errorTimer);
   bar.hidden = false;
   bar.textContent = text;
   bar.classList.toggle("modalfox-error", !!isError);
+  if (isError) hideCands();
 }
 
 function showStatus() {
@@ -29,12 +62,14 @@ function showStatus() {
   bar.hidden = false;
   bar.classList.remove("modalfox-error");
   bar.textContent = "vim";
+  hideCands();
 }
 
 function hideBar() {
   clearTimeout(errorTimer);
   bar.classList.remove("modalfox-error");
-  if (mode === "vim" && command === null) {
+  hideCands();
+  if (mode === "vim" && command === null && browserBuf === null) {
     showStatus();
     return;
   }
@@ -52,6 +87,7 @@ function flashMode(name) {
 
 function fail(text) {
   command = null;
+  browserBuf = null;
   showBar(text, true);
   errorTimer = setTimeout(hideBar, 1200);
 }
@@ -108,7 +144,7 @@ function hintLabels(count) {
 
 function collectTargets() {
   const selector = "a[href], button, input:not([type=hidden]), select, textarea, summary, [role=link], [role=button], [onclick]";
-  return [...document.querySelectorAll(selector)].filter((el) => !el.closest("#modalfox-bar, #modalfox-mode") && visible(el));
+  return [...document.querySelectorAll(selector)].filter((el) => !el.closest("#modalfox-bar, #modalfox-cands, #modalfox-mode") && visible(el));
 }
 
 function clearHint() {
@@ -193,10 +229,12 @@ function refreshHint() {
   }
 }
 
-async function runCommand() {
-  const line = command;
-  command = null;
-  const { cmd, arg } = splitCommand(line);
+async function runResolved(resolved) {
+  const { cmd, arg } = resolved;
+  if (cmd === "vim" && arg === "") {
+    await setMode("vim");
+    return;
+  }
   if (cmd === "browser" && arg === "") {
     await setMode("browser");
     return;
@@ -205,6 +243,17 @@ async function runCommand() {
   if (cmd === "tabopen") return openText(arg, true);
   if (cmd === "back" || cmd === "forward") return goHistory(cmd, arg);
   fail("unknown");
+}
+
+async function runCommand() {
+  const line = command;
+  command = null;
+  const resolved = resolveCommand(line);
+  if (!resolved) {
+    fail("ambiguous");
+    return;
+  }
+  await runResolved(resolved);
 }
 
 async function openText(text, newTab) {
@@ -228,6 +277,13 @@ function goHistory(cmd, arg) {
   history.go(cmd === "back" ? -count : count);
 }
 
+function complete(line) {
+  const { cmd, arg } = splitCommand(line);
+  const found = commandMatches(cmd);
+  if (found.length !== 1) return line;
+  return arg ? found[0] + " " + arg : found[0];
+}
+
 function onCommandKey(event) {
   if (event.key === "Escape") {
     event.preventDefault();
@@ -239,6 +295,12 @@ function onCommandKey(event) {
   }
   event.preventDefault();
   event.stopPropagation();
+  if (event.key === "Tab") {
+    command = complete(command);
+    showBar(":" + command);
+    showCands(splitCommand(command).cmd);
+    return;
+  }
   if (event.key === "Enter") {
     runCommand();
     return;
@@ -246,11 +308,13 @@ function onCommandKey(event) {
   if (event.key === "Backspace") {
     command = command.slice(0, -1);
     showBar(":" + command);
+    showCands(splitCommand(command).cmd);
     return;
   }
   if (event.key.length === 1) {
     command += event.key;
     showBar(":" + command);
+    showCands(splitCommand(command).cmd);
   }
 }
 
@@ -259,6 +323,7 @@ function onBrowserKey(event) {
     if (event.key === ":") {
       browserBuf = "";
       showBar(":");
+      showCands("");
     }
     return;
   }
@@ -267,8 +332,15 @@ function onBrowserKey(event) {
     hideBar();
     return;
   }
+  if (event.key === "Tab") {
+    browserBuf = complete(browserBuf);
+    showBar(":" + browserBuf);
+    showCands(splitCommand(browserBuf).cmd);
+    return;
+  }
   if (event.key === "Enter") {
-    if (browserBuf === "vim") setMode("vim");
+    const resolved = resolveCommand(browserBuf);
+    if (resolved && resolved.cmd === "vim" && resolved.arg === "") setMode("vim");
     else {
       browserBuf = null;
       hideBar();
@@ -278,11 +350,13 @@ function onBrowserKey(event) {
   if (event.key === "Backspace") {
     browserBuf = browserBuf.slice(0, -1);
     showBar(":" + browserBuf);
+    showCands(splitCommand(browserBuf).cmd);
     return;
   }
   if (event.key.length !== 1) return;
   browserBuf += event.key;
   showBar(":" + browserBuf);
+  showCands(splitCommand(browserBuf).cmd);
 }
 
 async function copyUrl() {
@@ -338,7 +412,7 @@ function onVimKey(event) {
     J: () => browser.runtime.sendMessage({ type: "nextTab" }),
     K: () => browser.runtime.sendMessage({ type: "prevTab" }),
     x: () => browser.runtime.sendMessage({ type: "closeTab" }),
-    X: () => browser.runtime.sendMessage({ type: "restoreTab" }),
+    X: () => browser.runtime.sendMessage({ type: "restoreTab", vim: true }),
     t: () => browser.runtime.sendMessage({ type: "newTab", vim: true }),
     f: () => startHint(false),
     F: () => startHint(true),
@@ -356,6 +430,7 @@ function onVimKey(event) {
     event.stopPropagation();
     command = "";
     showBar(":");
+    showCands("");
     return;
   }
   if (key === "g" || key === "y") {
