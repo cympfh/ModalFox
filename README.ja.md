@@ -7,7 +7,7 @@ Firefox の vim 風キーバインド。
 モードは二つ。タブごと。
 
 - `browser` — 初期モード。キーは全部ページに通す。`:vim` のあと `Esc` で `vim` に入る。それ以外は無視
-- `vim` — キーを奪う。`Esc` か `:browser` で `browser` に戻る
+- `vim` — キーを奪う。`Esc` か `:browser` で `browser` に戻る。ページ下に `vim` を出す。コロン入力中は消える
 
 ツールバーのアイコンで、現在タブのモード切替と拡張の無効化ができる。戻すのは `about:addons`。
 
@@ -37,16 +37,13 @@ Firefox の vim 風キーバインド。
 
 ## インストール
 
-再起動後も残す。
+再起動後も残す。Release の `.xpi` は AMO の署名済み。
 
 1. [Release](https://github.com/cympfh/ModalFox/releases/latest) の `.xpi` を落とす
-2. `about:config` で `xpinstall.signatures.required` を `false`。効くのは Developer Edition と Nightly。通常版は無視する
-3. `about:addons` → 歯車 → ファイルからアドオンをインストール
-
-通常版で残すなら AMO の署名が要る。未署名のファイルインストールは拒否される。
+2. `about:addons` → 歯車 → ファイルからアドオンをインストール
 
 `about:debugging` の一時読み込みは再起動で消える。
 
 ## リリース
 
-タグ `v0.1.0` を推す。workflow が manifest の version をタグから書き換え、`ModalFox-0.1.0.xpi` を GitHub Release に付ける。
+タグ `v0.1.0` を推す。workflow が manifest の version をタグから書き換え、AMO で unlisted 署名し、`ModalFox-0.1.0.xpi` を GitHub Release に付ける。

@@ -7,7 +7,7 @@ Vim-style modal keybindings for Firefox.
 Two modes, per tab.
 
 - `browser` — initial mode. Every key is passed to the page. `:vim` then `Esc` enters `vim`. Anything else is ignored.
-- `vim` — captures keys. `Esc` or `:browser` returns to `browser`.
+- `vim` — captures keys. `Esc` or `:browser` returns to `browser`. A status line shows `vim` until a colon command starts.
 
 The toolbar button toggles the current tab's mode, or disables the extension. Re-enable it from `about:addons`.
 
@@ -37,16 +37,13 @@ Hint characters are `asdfgqwertzxcvb`, assigned in that order.
 
 ## Install
 
-This survives restart.
+This survives restart. The release `.xpi` is signed by AMO.
 
 1. Download the `.xpi` from [Releases](https://github.com/cympfh/ModalFox/releases/latest).
-2. Set `xpinstall.signatures.required` to `false` in `about:config`. This works on Developer Edition and Nightly. Release ignores it.
-3. `about:addons` → gear → Install Add-on From File.
-
-Release Firefox needs an AMO signature. It rejects an unsigned file install.
+2. `about:addons` → gear → Install Add-on From File.
 
 Temporary load from `about:debugging` disappears on restart.
 
 ## Release
 
-Push a tag `v0.1.0`. The workflow rewrites `manifest.json` version from the tag, packs `ModalFox-0.1.0.xpi`, and attaches it to the GitHub Release.
+Push a tag `v0.1.0`. The workflow rewrites `manifest.json` version from the tag, signs it as an unlisted AMO add-on, and attaches `ModalFox-0.1.0.xpi` to the GitHub Release.
