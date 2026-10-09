@@ -4,7 +4,12 @@ Vim-style modal keybindings for Firefox.
 
 [日本語](README.ja.md)
 
-Initial mode is `browser`. Keys are not captured. Half-width `:` opens the command line and is also delivered to the page. `:vim` enters `vim`. `Esc` or `:browser` returns to `browser`.
+Two modes, per tab.
+
+- `browser` — initial. Keys are not captured. Half-width `:` opens the command line and is also delivered to the page. `:vim` enters `vim`.
+- `vim` — captures keys. `Esc` or `:browser` returns to `browser`.
+
+Hint and the command line are not modes. They are temporary states inside `vim`.
 
 See [SPEC.md](SPEC.md).
 

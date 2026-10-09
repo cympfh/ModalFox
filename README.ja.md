@@ -4,7 +4,12 @@ Firefox の vim 風キーバインド。
 
 [English](README.md)
 
-初期モードは `browser`。キーは奪わない。半角 `:` でコマンド行が開き、文字はページにも届く。`:vim` で `vim` に入る。`Esc` か `:browser` で戻る。
+モードは二つ。タブごと。
+
+- `browser` — 初期。キーは奪わない。半角 `:` でコマンド行が開き、文字はページにも届く。`:vim` で `vim` に入る
+- `vim` — キーを奪う。`Esc` か `:browser` で `browser` に戻る
+
+ヒントとコマンド行はモードではない。`vim` の中の一時状態。
 
 仕様は [SPEC.ja.md](SPEC.ja.md)。
 
