@@ -17,6 +17,22 @@
   color: #f66;
 }
 
+#modalfox-cands {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 27px;
+  z-index: 2147483647;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 2px 8px;
+  background: #1a1a1a;
+  color: #fc0;
+  font: 13px/1.4 ui-monospace, monospace;
+  border-top: 1px solid #333;
+  pointer-events: none;
+}
+
 #modalfox-mode {
   position: fixed;
   left: 8px;
