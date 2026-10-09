@@ -1,9 +1,12 @@
 const modeEl = document.querySelector("#mode");
 const toggle = document.querySelector("#toggle");
 const disable = document.querySelector("#disable");
+const versionEl = document.querySelector("#version");
 
 let mode = "browser";
 let tabId = null;
+
+versionEl.textContent = browser.runtime.getManifest().version;
 
 function render() {
   modeEl.textContent = mode;
