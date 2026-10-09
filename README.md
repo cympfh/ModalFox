@@ -6,10 +6,8 @@ Vim-style modal keybindings for Firefox.
 
 Two modes, per tab.
 
-- `browser` — initial. Keys are not captured. Half-width `:` opens the command line and is also delivered to the page. `:vim` enters `vim`.
+- `browser` — initial mode. All keys are passed to the page. `:vim` enters `vim`.
 - `vim` — captures keys. `Esc` or `:browser` returns to `browser`.
-
-Hint and the command line are not modes. They are temporary states inside `vim`.
 
 The toolbar button toggles the current tab's mode, or disables the extension. Re-enable it from `about:addons`.
 
