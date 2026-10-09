@@ -23,7 +23,7 @@ See [SPEC.md](SPEC.md).
 | `d` `u` | half page |
 | `gg` `G` | top, bottom |
 | `H` `L` | back, forward |
-| `J` `K` | next tab, previous tab |
+| `J` `K` | next tab (down), previous tab (up) |
 | `x` `X` | close, restore |
 | `t` | new tab, stays in `vim` |
 | `f` `F` | hint, same tab / new tab |

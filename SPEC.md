@@ -29,7 +29,7 @@ Per tab.
 
 - Scroll: `h` `j` `k` `l`, `d` `u` half page, `gg` `G`.
 - History: `H` back, `L` forward. Once.
-- Tabs: `J` `K`, `x` close, `X` restore, `t` new.
+- Tabs: `J` next (down), `K` previous (up), `x` close, `X` restore, `t` new.
 - Hints: `f` same tab, `F` new tab.
 - Hint characters: `asdfgqwertzxcvb`, assigned in that order. No shuffle. One character up to 15 targets, two after that. Short labels are used first.
 - `yy` copies the current URL. No notification.
