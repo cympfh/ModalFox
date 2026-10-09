@@ -2,9 +2,33 @@
 
 Vim-style modal keybindings for Firefox.
 
-Initial mode is `browser`. Keys are not captured. `:` opens the command line and is also delivered to the page. `:vim` enters `vim`.
+[日本語](README.ja.md)
+
+Initial mode is `browser`. Keys are not captured. Half-width `:` opens the command line and is also delivered to the page. `:vim` enters `vim`. `Esc` or `:browser` returns to `browser`.
 
 See [SPEC.md](SPEC.md).
+
+## Usage
+
+| key | action |
+| --- | --- |
+| `:vim` | enter `vim` |
+| `Esc` `:browser` | return to `browser` |
+| `h` `j` `k` `l` | scroll |
+| `d` `u` | half page |
+| `gg` `G` | top, bottom |
+| `H` `L` | back, forward |
+| `J` `K` | next tab, previous tab |
+| `x` `X` | close, restore |
+| `t` | new tab, stays in `vim` |
+| `f` `F` | hint, same tab / new tab |
+| `yy` | copy URL |
+| `p` `P` | open clipboard, current tab / new tab |
+| `:open` | open or search in the current tab |
+| `:tabopen` | open or search in a new tab |
+| `:back` `:forward` | history. Optional count, default 1 |
+
+Hint characters are `asdfgqwertzxcvb`, assigned in that order.
 
 ## Load
 

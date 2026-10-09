@@ -1,5 +1,7 @@
 # ModalFox
 
+[Japanese](SPEC.ja.md)
+
 ## Modes
 
 Per tab.
