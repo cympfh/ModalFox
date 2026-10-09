@@ -35,9 +35,17 @@ Firefox の vim 風キーバインド。
 
 ヒント文字は `asdfgqwertzxcvb`。この順で割り当てる。
 
-## 読み込み
+## インストール
 
-`about:debugging` → This Firefox → Load Temporary Add-on → `manifest.json`。
+再起動後も残す。
+
+1. [Release](https://github.com/cympfh/ModalFox/releases/latest) の zip を `.xpi` にリネーム
+2. `about:config` で `xpinstall.signatures.required` を `false`。効くのは Developer Edition と Nightly。通常版は無視する
+3. `about:addons` → 歯車 → ファイルからアドオンをインストール
+
+通常版で残すなら AMO の署名が要る。未署名のファイルインストールは拒否される。
+
+`about:debugging` の一時読み込みは再起動で消える。
 
 ## リリース
 

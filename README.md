@@ -35,9 +35,17 @@ See [SPEC.md](SPEC.md).
 
 Hint characters are `asdfgqwertzxcvb`, assigned in that order.
 
-## Load
+## Install
 
-`about:debugging` → This Firefox → Load Temporary Add-on → `manifest.json`.
+This survives restart.
+
+1. Rename the zip from [Releases](https://github.com/cympfh/ModalFox/releases/latest) to `.xpi`.
+2. Set `xpinstall.signatures.required` to `false` in `about:config`. This works on Developer Edition and Nightly. Release ignores it.
+3. `about:addons` → gear → Install Add-on From File.
+
+Release Firefox needs an AMO signature. It rejects an unsigned file install.
+
+Temporary load from `about:debugging` disappears on restart.
 
 ## Release
 
