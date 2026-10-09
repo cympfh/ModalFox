@@ -5,7 +5,7 @@
   "description": "Vim-style modal keybindings for Firefox",
   "browser_specific_settings": {
     "gecko": {
-      "id": "modalfox@cympfh.github.io",
+      "id": "modalfox@cympfh.cc",
       "strict_min_version": "128.0"
     }
   },
