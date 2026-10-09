@@ -9,6 +9,12 @@
       "strict_min_version": "128.0"
     }
   },
+  "permissions": ["tabs", "clipboardRead", "clipboardWrite", "sessions", "search", "management"],
+  "action": {
+    "default_title": "ModalFox",
+    "default_popup": "popup.html",
+    "default_icon": "icon.svg"
+  },
   "background": {
     "scripts": ["background.js"]
   },
@@ -16,6 +22,7 @@
     {
       "matches": ["<all_urls>"],
       "js": ["content.js"],
+      "css": ["content.css"],
       "run_at": "document_idle"
     }
   ]
