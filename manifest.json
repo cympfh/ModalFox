@@ -9,7 +9,7 @@
       "strict_min_version": "128.0"
     }
   },
-  "permissions": ["tabs", "clipboardRead", "clipboardWrite", "sessions", "search", "management"],
+  "permissions": ["tabs", "clipboardRead", "clipboardWrite", "sessions", "search", "management", "storage"],
   "action": {
     "default_title": "ModalFox",
     "default_popup": "popup.html",

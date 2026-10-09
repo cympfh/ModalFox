@@ -1,21 +1,92 @@
 const modeByTab = new Map();
+const domainModes = {};
+let scope = "tab";
+let globalMode = "browser";
 
-function modeOf(tabId) {
-  return modeByTab.get(tabId) || "browser";
-}
+const ready = browser.storage.local.get(["scope", "globalMode", "domainModes"]).then((data) => {
+  if (data.scope === "tab" || data.scope === "global" || data.scope === "domain") scope = data.scope;
+  if (data.globalMode === "browser" || data.globalMode === "vim") globalMode = data.globalMode;
+  if (data.domainModes && typeof data.domainModes === "object") Object.assign(domainModes, data.domainModes);
+});
 
 function tabIdOf(msg, sender) {
   return (sender.tab && sender.tab.id) || msg.tabId;
 }
 
-async function applyMode(tabId, next) {
-  modeByTab.set(tabId, next);
+function hostOf(url) {
   try {
-    await browser.tabs.sendMessage(tabId, { type: "applyMode", mode: next });
+    return new URL(url).hostname;
   } catch {
-    // about: pages have no content script. The stored mode applies on the next page.
+    return "";
   }
-  return { ok: true, mode: next };
+}
+
+function modeFor(tab) {
+  if (scope === "global") return globalMode;
+  if (scope === "domain") {
+    const host = hostOf(tab.url || "");
+    if (!host) return modeByTab.get(tab.id) || "browser";
+    return domainModes[host] || "browser";
+  }
+  return modeByTab.get(tab.id) || "browser";
+}
+
+async function persist() {
+  await browser.storage.local.set({ scope, globalMode, domainModes });
+}
+
+async function pushMode(tabId, mode) {
+  try {
+    await browser.tabs.sendMessage(tabId, { type: "applyMode", mode });
+  } catch {
+    // about: pages have no content script.
+  }
+}
+
+async function remember(tab, mode) {
+  if (scope === "global") {
+    globalMode = mode;
+    await persist();
+    const tabs = await browser.tabs.query({});
+    await Promise.all(tabs.map((item) => pushMode(item.id, mode)));
+    return;
+  }
+  if (scope === "domain") {
+    const host = hostOf(tab.url || "");
+    if (host) {
+      domainModes[host] = mode;
+      await persist();
+      const tabs = await browser.tabs.query({});
+      await Promise.all(tabs.filter((item) => hostOf(item.url || "") === host).map((item) => pushMode(item.id, mode)));
+      return;
+    }
+  }
+  modeByTab.set(tab.id, mode);
+  await pushMode(tab.id, mode);
+}
+
+async function setScope(tab, next) {
+  const current = modeFor(tab);
+  scope = next;
+  if (next === "global") globalMode = current;
+  if (next === "domain") {
+    const host = hostOf(tab.url || "");
+    if (host) domainModes[host] = current;
+  }
+  if (next === "tab") modeByTab.set(tab.id, current);
+  await persist();
+  if (next === "global") {
+    const tabs = await browser.tabs.query({});
+    await Promise.all(tabs.map((item) => pushMode(item.id, current)));
+  }
+  if (next === "domain") {
+    const host = hostOf(tab.url || "");
+    if (host) {
+      const tabs = await browser.tabs.query({});
+      await Promise.all(tabs.filter((item) => hostOf(item.url || "") === host).map((item) => pushMode(item.id, current)));
+    }
+  }
+  return { ok: true, scope };
 }
 
 function isUrl(text) {
@@ -35,7 +106,8 @@ async function openTarget(text, tabId, newTab, vim) {
     const url = toUrl(raw);
     if (newTab) {
       const tab = await browser.tabs.create({ url, active: true });
-      if (vim) modeByTab.set(tab.id, "vim");
+      if (vim && scope === "tab") modeByTab.set(tab.id, "vim");
+      if (vim && scope === "domain" && !hostOf(url)) modeByTab.set(tab.id, "vim");
       return { ok: true };
     }
     await browser.tabs.update(tabId, { url });
@@ -43,7 +115,7 @@ async function openTarget(text, tabId, newTab, vim) {
   }
   if (newTab) {
     const tab = await browser.tabs.create({ active: true });
-    if (vim) modeByTab.set(tab.id, "vim");
+    if (vim && scope !== "global") modeByTab.set(tab.id, "vim");
     await browser.search.search({ query: raw, tabId: tab.id });
     return { ok: true };
   }
@@ -65,20 +137,28 @@ async function restoreTab(vim) {
   if (!closed.length) return { ok: false, error: "empty" };
   const session = await browser.sessions.restore(closed[0].sessionId);
   const tab = session && (session.tab || (session.window && session.window.tabs && session.window.tabs[0]));
-  if (vim && tab) modeByTab.set(tab.id, "vim");
+  if (vim && tab && scope === "tab") modeByTab.set(tab.id, "vim");
+  if (vim && tab && scope === "domain" && !hostOf(tab.url || "")) modeByTab.set(tab.id, "vim");
   return { ok: true };
 }
 
 browser.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   const tabId = tabIdOf(msg, sender);
   (async () => {
-    if (msg.type === "getMode") return { mode: modeOf(tabId) };
+    await ready;
+    if (msg.type === "getScope") return { scope };
+    if (msg.type === "setScope") {
+      const tab = await browser.tabs.get(tabId);
+      return setScope(tab, msg.scope);
+    }
+    if (msg.type === "getMode") {
+      const tab = await browser.tabs.get(tabId);
+      return { mode: modeFor(tab), scope };
+    }
     if (msg.type === "setMode") {
-      if (sender.tab) {
-        modeByTab.set(tabId, msg.mode);
-        return { ok: true, mode: msg.mode };
-      }
-      return applyMode(tabId, msg.mode);
+      const tab = await browser.tabs.get(tabId);
+      await remember(tab, msg.mode);
+      return { ok: true, mode: msg.mode };
     }
     if (msg.type === "closeTab") {
       await browser.tabs.remove(tabId);
@@ -95,7 +175,7 @@ browser.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     }
     if (msg.type === "newTab") {
       const tab = await browser.tabs.create({ active: true });
-      if (msg.vim) modeByTab.set(tab.id, "vim");
+      if (msg.vim && scope !== "global") modeByTab.set(tab.id, "vim");
       return { ok: true };
     }
     if (msg.type === "open") return openTarget(msg.text, tabId, msg.newTab, msg.vim);
@@ -106,4 +186,9 @@ browser.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 
 browser.tabs.onRemoved.addListener((tabId) => {
   modeByTab.delete(tabId);
+});
+
+browser.tabs.onUpdated.addListener((tabId, change, tab) => {
+  if (!change.url || scope !== "domain") return;
+  pushMode(tabId, modeFor(tab));
 });
