@@ -31,7 +31,7 @@ jobs:
           data["version"] = os.environ["VERSION"]
           path.write_text(json.dumps(data, indent=2) + "\n")
           PY
-          archive="ModalFox-${version}.zip"
+          archive="ModalFox-${version}.xpi"
           zip -r "$archive" \
             manifest.json background.js content.js content.css \
             popup.html popup.js popup.css icon.svg
