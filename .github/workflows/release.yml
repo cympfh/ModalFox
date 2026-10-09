@@ -32,7 +32,7 @@ jobs:
           path.write_text(json.dumps(data, indent=2) + "\n")
           PY
           archive="ModalFox-${version}.zip"
-          zip -r "$archive" manifest.json background.js content.js
+          zip -r "$archive" manifest.json background.js content.js content.css
           gh release create "$GITHUB_REF_NAME" "$archive" \
             --title "$GITHUB_REF_NAME" \
             --generate-notes

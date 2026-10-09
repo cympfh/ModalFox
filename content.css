@@ -1,0 +1,29 @@
+#modalfox-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2147483647;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 4px 8px;
+  background: #111;
+  color: #eee;
+  font: 14px/1.4 ui-monospace, monospace;
+  border-top: 1px solid #444;
+}
+
+#modalfox-bar.modalfox-error {
+  color: #f66;
+}
+
+.modalfox-hint {
+  position: fixed;
+  z-index: 2147483646;
+  padding: 0 3px;
+  background: #fc0;
+  color: #111;
+  font: 12px/1.3 ui-monospace, monospace;
+  border-radius: 2px;
+  pointer-events: none;
+}
