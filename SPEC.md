@@ -4,25 +4,33 @@
 
 ## Modes
 
-Per tab.
-
 - `browser` — initial. Keys are not captured.
 - `vim` — captures keys only after entry.
 - Hint and command are temporary states inside `vim`. They return to `vim`.
 - `Esc` in `vim` drops the temporary state and returns to `browser`.
 
+## Memory
+
+`:set scope=tab|global|domain`. `:set scope` shows the value. Default is `tab`. The setting and remembered modes survive restart.
+
+- `tab` — per tab. Lost when the tab dies.
+- `global` — one mode, applied to every tab. The mode is kept.
+- `domain` — per hostname. `www` is separate. An unknown host is `browser`. A page with no host is tab-local until a host appears.
+
+Switching scope seeds the new unit from the current tab. The popup writes to the same unit.
+
 ## browser
 
 - Every key is passed to the page. Do not `preventDefault`.
-- Characters after a half-width `:` are read and also delivered to the page.
-- `:vim` followed by `Esc` enters `vim`. Anything else is ignored. No error.
+- Characters after a half-width `:` are read and also delivered to the page. The command line is shown.
+- `:vim` then `Enter` enters `vim`. `Esc` closes the command line. Anything else is ignored.
 - Ignore full-width `：`.
 
 ## Entry
 
-- `:vim` then `Esc` enters `vim`.
+- `:vim` then `Enter` enters `vim`.
 - `:browser` returns to `browser`.
-- No aliases.
+- No aliases. A unique prefix runs.
 
 ## vim keys
 
@@ -35,21 +43,22 @@ Per tab.
 - `p` opens the clipboard in the current tab. `P` opens a new tab. Non-URL text is a search. Empty does nothing.
 - Unknown keys are ignored. Mode stays.
 
-## vim commands
+## Commands
 
-- `:browser`
-- `:open` — current tab. Non-URL text is a search.
-- `:tabopen` — new tab.
-- `:back` `:forward` — default 1. Positive integer. `0`, negative, and non-numeric are errors and do not move. If history is shorter, go as far as it exists.
+- A unique prefix runs. Candidates sit above the command line. `Tab` completes the only candidate.
+- `:set scope=tab|global|domain`. `:set scope` shows the value. Usable from both modes.
+- `:browser` `:open` `:tabopen` `:back` `:forward`.
+- `:back` `:forward` — default 1. Positive integer. `0`, negative, and non-numeric are errors and do not move.
 
 ## Inheritance
 
-- A tab ModalFox opens from `vim` stays in `vim`: `t` `F` `P` `:tabopen`.
-- The original tab stays in `vim`.
-- `target=_blank` and normal clicks stay in `browser`.
+- In `tab`, `t` `F` `P` `:tabopen` opened from `vim` stay in `vim`. `X` restores `vim`.
+- In `global`, a new tab uses the shared mode.
+- In `domain`, the host memory wins. A hostless new tab inherits the current mode.
+- `target=_blank` and normal clicks use the scope's default.
 
 ## Out of scope
 
-- Operator pending, marks, visual mode, per-site ignore.
+- Operator pending, marks, visual mode.
 - UI other than the command line and the brief mode name.
 - `about:` and AMO. Content scripts do not run there.
