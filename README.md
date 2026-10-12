@@ -7,7 +7,9 @@ Vim-style modal keybindings for Firefox.
 Two modes, per tab.
 
 - `browser` — initial mode. Every key is passed to the page. `:vim` then `Enter` enters `vim`. `Esc` closes the command line.
-- `vim` — captures keys. `Esc` or `:browser` returns to `browser`. A status line shows `vim` until a colon command starts.
+- `vim` — captures keys. `Esc` or `:browser` returns to `browser`.
+
+The mode name stays at the bottom left. It hides only while a colon command is being typed, then returns.
 
 `:set scope` chooses where the mode is remembered. The default is `tab`. The setting survives restart.
 
@@ -35,7 +37,7 @@ See [SPEC.md](SPEC.md).
 | `x` | close |
 | `X` | restore. `tab` stays in `vim`. `domain` uses the host memory. `global` uses the shared mode |
 | `t` | new tab, stays in `vim` |
-| `f` `F` | hint, same tab / new tab |
+| `f` `F` | hint, same tab / new tab. `Esc` cancels and stays in `vim` |
 | `yy` | copy URL |
 | `p` `P` | open clipboard, current tab / new tab |
 | `:open` | open or search in the current tab |

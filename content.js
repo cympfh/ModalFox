@@ -7,7 +7,6 @@ let hint = null;
 let pending = "";
 let browserBuf = null;
 let errorTimer = 0;
-let modeTimer = 0;
 
 const bar = document.createElement("div");
 bar.id = "modalfox-bar";
@@ -51,40 +50,34 @@ function hideCands() {
   cands.hidden = true;
 }
 
+function showModeBadge() {
+  if (command !== null || browserBuf !== null) {
+    badge.hidden = true;
+    return;
+  }
+  badge.hidden = false;
+  badge.textContent = mode;
+}
+
+function hideModeBadge() {
+  badge.hidden = true;
+}
+
 function showBar(text, isError) {
   clearTimeout(errorTimer);
   bar.hidden = false;
   bar.textContent = text;
   bar.classList.toggle("modalfox-error", !!isError);
+  hideModeBadge();
   if (isError) hideCands();
-}
-
-function showStatus() {
-  clearTimeout(errorTimer);
-  bar.hidden = false;
-  bar.classList.remove("modalfox-error");
-  bar.textContent = "vim";
-  hideCands();
 }
 
 function hideBar() {
   clearTimeout(errorTimer);
+  bar.hidden = true;
   bar.classList.remove("modalfox-error");
   hideCands();
-  if (mode === "vim" && command === null && browserBuf === null) {
-    showStatus();
-    return;
-  }
-  bar.hidden = true;
-}
-
-function flashMode(name) {
-  clearTimeout(modeTimer);
-  badge.hidden = false;
-  badge.textContent = name;
-  modeTimer = setTimeout(() => {
-    badge.hidden = true;
-  }, 2000);
+  showModeBadge();
 }
 
 function fail(text) {
@@ -95,14 +88,12 @@ function fail(text) {
 }
 
 function applyMode(next) {
-  const changed = mode !== next;
   mode = next;
   command = null;
   pending = "";
   browserBuf = null;
   clearHint();
   hideBar();
-  if (changed) flashMode(next);
 }
 
 async function setMode(next) {
@@ -489,6 +480,7 @@ browser.runtime.onMessage.addListener((msg) => {
   if (msg.type === "applyMode") applyMode(msg.mode);
 });
 
+showModeBadge();
 browser.runtime.sendMessage({ type: "getMode" }).then((res) => {
-  if (res && res.mode === "vim") applyMode("vim");
+  if (res && res.mode) applyMode(res.mode);
 });
