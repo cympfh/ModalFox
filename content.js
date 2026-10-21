@@ -1,3 +1,8 @@
+if (window.__modalfox) {
+  // already running in this frame
+} else {
+  window.__modalfox = true;
+
 const HINT_CHARS = "asdfgqwertzxcvb";
 const LINE = 60;
 const TEXT_TYPES = new Set([
@@ -12,6 +17,11 @@ let pending = "";
 let browserBuf = null;
 let editing = false;
 let errorTimer = 0;
+
+document.getElementById("modalfox-bar")?.remove();
+document.getElementById("modalfox-cands")?.remove();
+document.getElementById("modalfox-mode")?.remove();
+document.querySelectorAll(".modalfox-hint").forEach((el) => el.remove());
 
 const bar = document.createElement("div");
 bar.id = "modalfox-bar";
@@ -547,3 +557,4 @@ showModeBadge();
 browser.runtime.sendMessage({ type: "getMode" }).then((res) => {
   if (res && res.mode) applyMode(res.mode);
 });
+}
