@@ -165,8 +165,17 @@ function hintLabels(count) {
 }
 
 function collectTargets() {
-  const selector = "a[href], button, input:not([type=hidden]), select, textarea, summary, [role=link], [role=button], [onclick]";
-  return [...document.querySelectorAll(selector)].filter((el) => !el.closest("#modalfox-bar, #modalfox-cands, #modalfox-mode") && visible(el));
+  const selector = "a[href], button, input:not([type=hidden]), select, textarea, summary, [role=link], [role=button], [role=textbox], [contenteditable]:not([contenteditable=false]), [onclick]";
+  const seen = new Set();
+  const out = [];
+  for (const el of document.querySelectorAll(selector)) {
+    if (seen.has(el)) continue;
+    if (el.closest("#modalfox-bar, #modalfox-cands, #modalfox-mode")) continue;
+    if (!visible(el)) continue;
+    seen.add(el);
+    out.push({ el, text: isEditable(el) });
+  }
+  return out;
 }
 
 function clearHint() {
@@ -174,24 +183,35 @@ function clearHint() {
   document.querySelectorAll(".modalfox-hint").forEach((el) => el.remove());
 }
 
+function placeHint(item) {
+  const rect = item.el.getBoundingClientRect();
+  const tag = document.createElement("div");
+  tag.className = item.text ? "modalfox-hint modalfox-hint-text" : "modalfox-hint";
+  tag.textContent = item.shown;
+  tag.style.left = Math.max(0, rect.left) + "px";
+  tag.style.top = Math.max(0, rect.top) + "px";
+  document.documentElement.append(tag);
+}
+
 function startHint(newTab) {
   const targets = collectTargets();
   const labels = hintLabels(targets.length);
-  const items = targets.slice(0, labels.length).map((el, i) => ({ el, label: labels[i] }));
+  const items = targets.slice(0, labels.length).map((target, i) => ({
+    el: target.el,
+    label: labels[i],
+    shown: labels[i],
+    text: target.text,
+  }));
   hint = { items, typed: "", newTab };
-  for (const item of items) {
-    const rect = item.el.getBoundingClientRect();
-    const tag = document.createElement("div");
-    tag.className = "modalfox-hint";
-    tag.textContent = item.label;
-    tag.style.left = Math.max(0, rect.left) + "px";
-    tag.style.top = Math.max(0, rect.top) + "px";
-    document.documentElement.append(tag);
-  }
+  for (const item of items) placeHint(item);
 }
 
 async function activate(item, newTab) {
   clearHint();
+  if (item.text) {
+    item.el.focus();
+    return;
+  }
   const href = item.el.closest("a[href]")?.href || item.el.href;
   if (newTab && href) {
     await browser.runtime.sendMessage({ type: "open", text: href, newTab: true, vim: true });
@@ -240,13 +260,8 @@ function refreshHint() {
   document.querySelectorAll(".modalfox-hint").forEach((el) => el.remove());
   for (const item of hint.items) {
     if (!item.label.startsWith(hint.typed)) continue;
-    const rect = item.el.getBoundingClientRect();
-    const tag = document.createElement("div");
-    tag.className = "modalfox-hint";
-    tag.textContent = item.label.slice(hint.typed.length) || item.label;
-    tag.style.left = Math.max(0, rect.left) + "px";
-    tag.style.top = Math.max(0, rect.top) + "px";
-    document.documentElement.append(tag);
+    item.shown = item.label.slice(hint.typed.length) || item.label;
+    placeHint(item);
   }
 }
 
