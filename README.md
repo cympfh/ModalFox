@@ -9,6 +9,8 @@ Two modes, per tab.
 - `browser` — initial mode. Every key is passed to the page. `:vim` then `Enter` enters `vim`. `Esc` closes the command line.
 - `vim` — captures keys. `Esc` or `:browser` returns to `browser`.
 
+Focusing a text field from `vim` enters `text`. Keys pass through. `Esc` blurs, and clicking away also returns to `vim`. `browser` is unchanged.
+
 The mode name stays at the bottom left. It hides only while a colon command is being typed, then returns.
 
 `:set scope` chooses where the mode is remembered. The default is `tab`. The setting survives restart.
@@ -27,6 +29,7 @@ See [SPEC.md](SPEC.md).
 | --- | --- |
 | `:vim` then `Enter` | enter `vim`. The keys also reach the page |
 | `Esc` `:browser` | return to `browser` |
+| text field | from `vim`, becomes `text`. `Esc` blurs and returns to `vim` |
 | `:set scope=tab` | remember per tab. Also `global` and `domain` |
 | `:set scope` | show the current scope |
 | `h` `j` `k` `l` | scroll |

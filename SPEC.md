@@ -6,8 +6,9 @@
 
 - `browser` — initial. Keys are not captured.
 - `vim` — captures keys only after entry.
+- `text` — temporary state entered by focusing a text field from `vim`. Keys pass through. `Esc` blurs. Clicking away also returns to `vim`. Not entered from `browser`.
 - Hint and command are temporary states inside `vim`. They return to `vim`.
-- `Esc` in `vim` drops the temporary state and returns to `browser`.
+- `Esc` in a hint cancels the hint and stays in `vim`. `Esc` on the command line returns to `browser`.
 
 ## Memory
 
@@ -37,7 +38,7 @@ Switching scope seeds the new unit from the current tab. The popup writes to the
 - Scroll: `h` `j` `k` `l`, `d` `u` half page, `gg` `G`.
 - History: `H` back, `L` forward. Once.
 - Tabs: `J` next (down), `K` previous (up), `x` close, `X` restore, `t` new.
-- Hints: `f` same tab, `F` new tab.
+- Hints: `f` same tab, `F` new tab. `Esc` cancels the hint only.
 - Hint characters: `asdfgqwertzxcvb`, assigned in that order. No shuffle. One character up to 15 targets, two after that. Short labels are used first.
 - `yy` copies the current URL. No notification.
 - `p` opens the clipboard in the current tab. `P` opens a new tab. Non-URL text is a search. Empty does nothing.

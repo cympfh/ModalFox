@@ -9,6 +9,8 @@ Firefox の vim 風キーバインド。
 - `browser` — 初期モード。キーは全部ページに通す。`:vim` のあと `Enter` で `vim` に入る。`Esc` はコマンド行を閉じる
 - `vim` — キーを奪う。`Esc` か `:browser` で `browser` に戻る
 
+`vim` 中にテキスト入力欄へ入ると `text` になる。キーは通す。`Esc` でアンフォーカスし、クリックで抜けても `vim` に戻る。`browser` 中は何もしない。
+
 モード名は左下に常時出す。コロン入力中だけ消える。抜けたら戻る。
 
 記憶の単位は `:set scope`。初期値は `tab`。再起動後も残る。
@@ -27,6 +29,7 @@ Firefox の vim 風キーバインド。
 | --- | --- |
 | `:vim` のあと `Enter` | `vim` に入る。文字はページにも届く |
 | `Esc` `:browser` | `browser` に戻る |
+| 入力欄 | `vim` から入ると `text`。`Esc` で抜けると `vim` |
 | `:set scope=tab` | 記憶をタブごとにする。`global` `domain` もある |
 | `:set scope` | 今の記憶単位を出す |
 | `h` `j` `k` `l` | スクロール |

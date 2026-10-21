@@ -1,11 +1,16 @@
 const HINT_CHARS = "asdfgqwertzxcvb";
 const LINE = 60;
+const TEXT_TYPES = new Set([
+  "text", "search", "url", "email", "password", "tel", "number",
+  "date", "time", "datetime-local", "month", "week",
+]);
 
 let mode = "browser";
 let command = null;
 let hint = null;
 let pending = "";
 let browserBuf = null;
+let editing = false;
 let errorTimer = 0;
 
 const bar = document.createElement("div");
@@ -56,7 +61,7 @@ function showModeBadge() {
     return;
   }
   badge.hidden = false;
-  badge.textContent = mode;
+  badge.textContent = editing ? "text" : mode;
 }
 
 function hideModeBadge() {
@@ -87,13 +92,37 @@ function fail(text) {
   errorTimer = setTimeout(hideBar, 1200);
 }
 
+function isEditable(el) {
+  if (!el || el.nodeType !== 1) return false;
+  if (el.closest("#modalfox-bar, #modalfox-cands, #modalfox-mode")) return false;
+  if (el.isContentEditable) return true;
+  if (el.getAttribute("role") === "textbox") return true;
+  if (el.tagName === "TEXTAREA") return true;
+  if (el.tagName === "INPUT") return TEXT_TYPES.has((el.type || "text").toLowerCase());
+  return false;
+}
+
+function enterText() {
+  if (mode !== "vim" || editing) return;
+  editing = true;
+  showModeBadge();
+}
+
+function leaveText() {
+  if (!editing) return;
+  editing = false;
+  showModeBadge();
+}
+
 function applyMode(next) {
   mode = next;
+  if (mode !== "vim") editing = false;
   command = null;
   pending = "";
   browserBuf = null;
   clearHint();
   hideBar();
+  if (mode === "vim" && isEditable(document.activeElement)) enterText();
 }
 
 async function setMode(next) {
@@ -461,6 +490,15 @@ function onVimKey(event) {
 window.addEventListener("keydown", (event) => {
   if (event.isComposing || event.key === "Process") return;
   if (event.ctrlKey || event.metaKey || event.altKey) return;
+  if (editing) {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      event.stopPropagation();
+      const el = document.activeElement;
+      if (el && typeof el.blur === "function") el.blur();
+    }
+    return;
+  }
   if (mode === "browser") {
     onBrowserKey(event);
     return;
@@ -475,6 +513,16 @@ window.addEventListener("keydown", (event) => {
   }
   onVimKey(event);
 }, true);
+
+document.addEventListener("focusin", (event) => {
+  if (isEditable(event.target)) enterText();
+});
+
+document.addEventListener("focusout", () => {
+  setTimeout(() => {
+    if (!isEditable(document.activeElement)) leaveText();
+  }, 0);
+});
 
 browser.runtime.onMessage.addListener((msg) => {
   if (msg.type === "applyMode") applyMode(msg.mode);
